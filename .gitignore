@@ -594,3 +594,7 @@ fabric.properties
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/dotnetcore,csharp,react,node,visualstudiocode,rider
+
+
+#just add whole .idea folder
+.idea
