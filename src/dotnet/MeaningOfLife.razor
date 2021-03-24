@@ -1,0 +1,18 @@
+﻿@attribute [ExposePilet("meaning-of-life")]
+@using Blazor.LibA.Interfaces
+@inject IMeaningOfLifeService MeaningOfLifeService
+
+<Extension Name="logo-blazor"></Extension>
+<h3>The Meaning of Life</h3>
+<p>Demo of dependency injection</p>
+
+<p>The injected service says: <strong>@result</strong></p>
+
+@code {
+    string result;
+
+    protected override void OnInitialized()
+    {
+        result = MeaningOfLifeService.Get();
+    }
+}
