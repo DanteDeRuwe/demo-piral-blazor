@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { PiletApi } from 'sample-cross-fx';
 import './style.scss';
 
@@ -24,7 +25,13 @@ export function setup(app: PiletApi) {
   app.registerExtension('rng-blazor', app.fromBlazor('rng-blazor'));
 
   app.registerTile(app.fromBlazor('numbers-tile'));
+  app.registerTile(() => (
+    <div className="tile">
+      <Link to="/colors">Colors</Link>
+    </div>
+  ));
 
   app.registerPage('/numbers', app.fromBlazor('numbers'));
+  app.registerPage('/colors', app.fromBlazor('colors'));
   app.registerPage('/about', app.fromBlazor('about'));
 }

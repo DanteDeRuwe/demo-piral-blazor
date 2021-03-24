@@ -1,0 +1,36 @@
+﻿@attribute [ExposePilet("colors")]
+
+<Extension Name="logo-blazor"></Extension>
+<h3>Colors</h3>
+
+<div style="display: flex; gap: 1rem; margin-top:1rem;">
+    <div @onmouseover="ChangeColor" style="width: 200px; height: 100px; background: @color; color: white">mouse over me</div>
+    <div @onmouseout="ChangeColor" style="width: 200px; height: 100px; background: @color; color: white">mouseleave me</div>
+    <div @onwheel="ChangeColor" style="width: 200px; height: 100px; background: @color; color: white">scroll me</div>
+    <div @ondblclick="ChangeColor" style="width: 200px; height: 100px; background: @color; color: white">dubbleclick me</div>
+    <div @ondragstart="ChangeColor" style="width: 200px; height: 100px; background: @color; color: white">drag me</div>
+    <div @onmouseup="HandleRightClick" oncontextmenu="return false" style="width: 200px; height: 100px; background: @color; color: white">rightclick me</div>
+    <div @onmouseup="HandleMiddleMouse" style="width: 200px; height: 100px; background: @color; color: white">middlemouseclick me</div>
+</div>
+
+@code {
+    string color = "black";
+    string[] colors = { "red", "orange", "yellow", "green", "blue", "indigo", "violet" };
+    Random r = new Random();
+
+    void ChangeColor()
+    {
+        var i = r.Next(0, colors.Length);
+        color = colors[i];
+    }
+
+    void HandleRightClick(MouseEventArgs args)
+    {
+        if (args.Button == 2) ChangeColor();
+    }
+    
+    void HandleMiddleMouse(MouseEventArgs args)
+    {
+        if (args.Button == 1) ChangeColor();
+    }
+}
