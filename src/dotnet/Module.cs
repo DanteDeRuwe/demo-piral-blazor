@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http;
 
 namespace Blazor.LibA
 {
@@ -12,6 +14,7 @@ namespace Blazor.LibA
 		public static void ConfigureServices(IServiceCollection services)
 		{
 			// configure dependency injection here
+			services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://v2.jokeapi.dev") });
 		}
 	}
 }

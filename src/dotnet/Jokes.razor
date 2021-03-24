@@ -1,0 +1,28 @@
+﻿@attribute [ExposePilet("jokes")]
+@inject HttpClient client
+
+<Extension Name="logo-blazor"></Extension>
+<h3>Jokes</h3>
+
+<p>This component demonstrates fetching data from an API.</p>
+
+@if (joke == null)
+{
+    <button @onclick="Fetch">FETCH</button>
+    return;
+}
+
+<blockquote>@joke</blockquote>
+
+
+@code {
+    string joke;
+
+    async Task Fetch()
+    {
+        var response = await client.GetAsync("/joke/Any?format=txt&type=single");
+        if (response.IsSuccessStatusCode) joke = await response.Content.ReadAsStringAsync();
+
+        // joke = await client.GetStringAsync("/joke/Any?format=txt&type=single");
+    }
+}
