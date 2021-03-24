@@ -13,6 +13,13 @@ const logoBlazor: React.FC = () => (
   </div>
 );
 
+const colorsTile: React.FC = () => (
+  <div className="tile">
+    <Link to="/colors">Colors</Link>
+    <small style={{ color: 'gray' }}>(tile from React)</small>
+  </div>
+);
+
 export function setup(app: PiletApi) {
   //register react extensions like they would come from other pilets
   app.registerExtension('logo-blazor', logoBlazor);
@@ -24,13 +31,11 @@ export function setup(app: PiletApi) {
   app.registerExtension('rng-blazor', app.fromBlazor('counter-blazor'));
   app.registerExtension('rng-blazor', app.fromBlazor('rng-blazor'));
 
-  app.registerTile(app.fromBlazor('numbers-tile'));
-  app.registerTile(() => (
-    <div className="tile">
-      <Link to="/colors">Colors</Link>
-    </div>
-  ));
+  //register tiles
+  app.registerTile(colorsTile); //from react
+  app.registerTile(app.fromBlazor('numbers-tile')); //from blazor
 
+  //register pages
   app.registerPage('/numbers', app.fromBlazor('numbers'));
   app.registerPage('/colors', app.fromBlazor('colors'));
   app.registerPage('/about', app.fromBlazor('about'));
