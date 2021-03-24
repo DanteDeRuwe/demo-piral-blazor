@@ -6,4 +6,5 @@ export function setup(app: PiletApi) {
   app.registerTile(app.fromBlazor('counter-menu'));
 
   app.registerPage('/counter', app.fromBlazor('counter'));
+  app.registerPage('/about', app.fromBlazor('about'));
 }
