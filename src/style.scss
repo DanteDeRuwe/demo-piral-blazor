@@ -8,3 +8,14 @@
   color: gray;
   margin-bottom: 1rem;
 }
+
+.numbers-wrapper {
+  margin-top: 1rem;
+  display: flex;
+  gap: 2rem;
+
+  & [data-blazor-pilet-root] {
+    border: 1px solid black;
+    padding: 1rem;
+  }
+}

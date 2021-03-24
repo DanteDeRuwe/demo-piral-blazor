@@ -1,0 +1,17 @@
+﻿@attribute [ExposePilet("rng-blazor")]
+
+<h3>Random Number Generator</h3>
+<p>The random number is: <strong>@number</strong></p>
+
+<button @onclick="Generate">Generate</button>
+
+@code {
+    static Random r = new Random();
+    int number = r.Next(1000);
+
+    void Generate()
+    {
+        number = r.Next(1000);
+    }
+
+}

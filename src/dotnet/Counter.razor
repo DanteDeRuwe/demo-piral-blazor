@@ -1,11 +1,10 @@
-@attribute [ExposePilet("counter")]
-<Extension Name="logo-blazor"></Extension>
-<h1>Counter from Pilet</h1>
+@attribute [ExposePilet("counter-blazor")]
 
-<Anchor To="/about">Read more about this</Anchor>
+<h3>Counter</h3>
 <p>Current count: @currentCount</p>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<button @onclick="IncrementCount">Click me</button>
+
 
 @code {
     int currentCount = 0;

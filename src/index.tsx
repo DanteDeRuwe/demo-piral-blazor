@@ -20,7 +20,11 @@ export function setup(app: PiletApi) {
   app.defineBlazorReferences(require('./refs.codegen'));
 
   //register the Blazor extensions
-  app.registerTile(app.fromBlazor('counter-menu'));
-  app.registerPage('/counter', app.fromBlazor('counter'));
+  app.registerExtension('rng-blazor', app.fromBlazor('counter-blazor'));
+  app.registerExtension('rng-blazor', app.fromBlazor('rng-blazor'));
+
+  app.registerTile(app.fromBlazor('numbers-tile'));
+
+  app.registerPage('/numbers', app.fromBlazor('numbers'));
   app.registerPage('/about', app.fromBlazor('about'));
 }
