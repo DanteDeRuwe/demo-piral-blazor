@@ -13,23 +13,9 @@ const logoBlazor: React.FC = () => (
   </div>
 );
 
-const colorsTile: React.FC = () => (
+const ReactTile: React.FC<any> = ({ name, url }) => (
   <div className="tile">
-    <Link to="/colors">Colors</Link>
-    <small style={{ color: 'gray' }}>(tile from React)</small>
-  </div>
-);
-
-const jokesTile: React.FC = () => (
-  <div className="tile">
-    <Link to="jokes">Jokes</Link>
-    <small style={{ color: 'gray' }}>(tile from React)</small>
-  </div>
-);
-
-const profileTile: React.FC = () => (
-  <div className="tile">
-    <Link to="profile">Profile</Link>
+    <Link to={url}>{name}</Link>
     <small style={{ color: 'gray' }}>(tile from React)</small>
   </div>
 );
@@ -46,9 +32,9 @@ export function setup(app: PiletApi) {
   app.registerExtension('rng-blazor', app.fromBlazor('rng-blazor'));
 
   //register tiles
-  app.registerTile(colorsTile); //from react
-  app.registerTile(jokesTile); //from react
-  app.registerTile(profileTile); //from react
+  app.registerTile(() => <ReactTile name="Colors" url="colors" />); //from react
+  app.registerTile(() => <ReactTile name="Jokes" url="jokes" />); //from react
+  app.registerTile(() => <ReactTile name="Profile" url="profile" />); //from react
   app.registerTile(app.fromBlazor('numbers-tile')); //from blazor
 
   //register pages
