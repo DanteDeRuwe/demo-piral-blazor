@@ -1,0 +1,27 @@
+﻿@attribute [ExposePilet("profile")]
+@using Bogus
+
+<Extension Name="logo-blazor"></Extension>
+<h3>Profile</h3>
+<small>This page uses the NuGet package <code>Bogus</code></small>
+
+<button @onclick="Generate">Generate person</button>
+
+@if (person is null){ return; }
+
+<p>@person.FirstName</p>
+<p>@person.LastName</p>
+<p>@person.Email</p>
+<p>@person.Address.Street</p>
+<p>@person.Address.ZipCode @person.Address.City</p>
+
+
+
+@code {
+    Person person;
+
+    void Generate()
+    {
+        person = new Person();
+    }
+}
