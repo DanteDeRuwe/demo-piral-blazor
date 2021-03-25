@@ -598,3 +598,6 @@ fabric.properties
 
 #just add whole .idea folder
 .idea
+
+# publish script
+src/publish.sh
