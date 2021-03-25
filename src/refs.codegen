@@ -1,11 +1,46 @@
 const { resolve } = require('path');
-const { copyFileSync } = require('fs');
+const { copyFileSync, existsSync, mkdirSync } = require('fs');
+const { execSync } = require('child_process');
+
+const bbjson = 'blazor.boot.json';
+const root = resolve(__dirname, '..');
+const output = resolve(__dirname, 'dotnet', 'bin', 'Release', 'netstandard2.1');
+const source = resolve(output, 'wwwroot', '_framework', '_bin');
+
+function getAssemblyNames(manifest) {
+  return Object.keys(manifest.resources.assembly);
+}
+
+function getUniqueAssemblies(originalManifest, piletManifest) {
+  const original = getAssemblyNames(originalManifest);
+  const dedicated = getAssemblyNames(piletManifest);
+  return dedicated.filter(m => !original.includes(m));
+}
 
 module.exports = async function () {
-  const output = resolve(__dirname, 'dotnet', 'bin', 'Release', 'netstandard2.1');
-  const source = resolve(output, 'wwwroot', '_framework', '_bin');
   const target = this.options.outDir;
-  const files = ['Blazor.LibA.dll'];
+
+  if (!existsSync(source)) {
+    console.log(`No Blazor output found. Building Blazor binary ...`);
+
+    execSync('dotnet build --configuration Release', {
+      cwd: __dirname,
+      stdio: 'inherit',
+    });
+  }
+
+  const project = require(resolve(root, 'package.json'));
+  const appdir = resolve(__dirname, '..', 'node_modules', project.piral.name);
+
+  if (!existsSync(appdir)) {
+    throw new Error(`Cannot find the directory of "${project.piral.name}". Please re-install the dependencies.`);
+  }
+
+  const piletManifest = require(resolve(output, 'wwwroot', '_framework', bbjson));
+  const originalManifest = require(resolve(appdir, 'app', '_framework', bbjson));
+  const files = getUniqueAssemblies(originalManifest, piletManifest);
+
+  mkdirSync(target, { recursive: true });
 
   files.forEach(file => {
     const from = resolve(source, file);
