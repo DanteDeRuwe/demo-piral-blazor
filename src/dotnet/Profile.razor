@@ -1,5 +1,5 @@
 ﻿@attribute [ExposePilet("profile")]
-@using Bogus
+@using AutoBogus
 
 <Extension Name="logo-blazor"></Extension>
 <h3>Profile</h3>
@@ -12,16 +12,33 @@
 <p>@person.FirstName</p>
 <p>@person.LastName</p>
 <p>@person.Email</p>
-<p>@person.Address.Street</p>
-<p>@person.Address.ZipCode @person.Address.City</p>
 
 
 
 @code {
     Person person;
+    PersonFaker faker = new PersonFaker();
 
     void Generate()
     {
-        person = new Person();
+        person = faker.Generate();
     }
+
+    class Person
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+    }
+    
+    class PersonFaker : AutoFaker<Person>
+    {
+        public PersonFaker()
+        {
+            RuleFor(p => p.FirstName, f => f.Person.FirstName);
+            RuleFor(p => p.LastName, f => f.Person.LastName);
+            RuleFor(p => p.Email, f => f.Person.Email);
+        }
+    }
+    
 }
