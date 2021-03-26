@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.30104.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.LibA", "dotnet\Blazor.LibA.csproj", "{3F7F84F4-E02A-490A-B106-A2DBADA59EC8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.LibB", "Blazor.LibB\Blazor.LibB.csproj", "{D00F5380-B39E-46C9-93C3-32E99DB59A75}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.LibC", "Blazor.LibC\Blazor.LibC.csproj", "{FF73C567-F3FB-4616-A812-844378FA3891}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{3F7F84F4-E02A-490A-B106-A2DBADA59EC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F7F84F4-E02A-490A-B106-A2DBADA59EC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F7F84F4-E02A-490A-B106-A2DBADA59EC8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D00F5380-B39E-46C9-93C3-32E99DB59A75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D00F5380-B39E-46C9-93C3-32E99DB59A75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D00F5380-B39E-46C9-93C3-32E99DB59A75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D00F5380-B39E-46C9-93C3-32E99DB59A75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF73C567-F3FB-4616-A812-844378FA3891}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF73C567-F3FB-4616-A812-844378FA3891}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF73C567-F3FB-4616-A812-844378FA3891}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF73C567-F3FB-4616-A812-844378FA3891}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

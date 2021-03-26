@@ -1,0 +1,16 @@
+﻿@attribute [ExposePilet("greeter")]
+<Extension Name="logo-blazor"></Extension>
+
+<h3>Greetings</h3>
+<p>@helloB</p>
+<p>@helloC</p>
+
+@code {
+
+    string helloB, helloC;
+    protected override void OnInitialized()
+    {
+        helloB = LibB.Greeter.SayHello();
+        helloC = LibB.Greeter.LetCSayHello();
+    }
+}
