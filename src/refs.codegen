@@ -7,6 +7,10 @@ const root = resolve(__dirname, '..');
 const output = resolve(__dirname, 'dotnet', 'bin', 'Release', 'netstandard2.1');
 const source = resolve(output, 'wwwroot', '_framework', '_bin');
 
+const objects = resolve(__dirname, 'dotnet', 'obj'); //TODO get this from msbuild GenerateRestoreGraphFile?
+const projectAssets = require(resolve(objects, 'project.assets.json'));
+const targets = projectAssets.targets['.NETStandard,Version=v2.1'];
+
 function getAssemblyNames(manifest) {
   return Object.keys(manifest.resources.assembly);
 }
@@ -17,18 +21,16 @@ function getUniqueAssemblies(originalManifest, piletManifest) {
   return dedicated.filter(m => !original.includes(m));
 }
 
-module.exports = async function () {
-  const target = this.options.outDir;
+function buildBlazor() {
+  console.log(`No Blazor output found. Building Blazor binary ...`);
 
-  if (!existsSync(source)) {
-    console.log(`No Blazor output found. Building Blazor binary ...`);
+  execSync('dotnet build --configuration Release', {
+    cwd: __dirname,
+    stdio: 'inherit',
+  });
+}
 
-    execSync('dotnet build --configuration Release', {
-      cwd: __dirname,
-      stdio: 'inherit',
-    });
-  }
-
+function diffBlazorBootFiles() {
   const project = require(resolve(root, 'package.json'));
   const appdir = resolve(__dirname, '..', 'node_modules', project.piral.name);
 
@@ -38,7 +40,35 @@ module.exports = async function () {
 
   const piletManifest = require(resolve(output, 'wwwroot', '_framework', bbjson));
   const originalManifest = require(resolve(appdir, 'app', '_framework', bbjson));
-  const files = getUniqueAssemblies(originalManifest, piletManifest);
+  return getUniqueAssemblies(originalManifest, piletManifest);
+}
+
+function createAllRefs(internaltargets, externalTargets) {
+  const refs = new Set(); //luckily in js, Sets de-duplicate AND keep their insertion order
+
+  const createRefs = fileName => {
+    //depth-first post-order traversal of the dependencies
+    if (!fileName) return;
+    const deps = externalTargets[fileName]; //lookup
+    if (!deps || deps.length === 0) return refs.add(fileName); //leaf
+    deps.forEach(createRefs); // children
+    refs.add(fileName);
+  };
+
+  for ([fileName, deps] of Object.entries(internaltargets)) {
+    deps.forEach(createRefs);
+    refs.add(fileName);
+  }
+
+  return [...refs].map(r => `${r}.dll`);
+}
+
+module.exports = async function () {
+  const target = this.options.outDir;
+
+  if (!existsSync(source)) buildBlazor();
+
+  const files = diffBlazorBootFiles();
 
   mkdirSync(target, { recursive: true });
 
@@ -48,7 +78,28 @@ module.exports = async function () {
     copyFileSync(from, to);
   });
 
+  const fileNames = files.map(f => f.replace('.dll', ''));
+
+  const isNotSharedDep = x => fileNames.includes(x);
+  const stripVersion = x => x.replace(/\/(\d+\.?)+/, '');
+
+  const externalTargets = Object.entries(targets)
+    .map(x => [stripVersion(x[0]), x[1]]) ///strip versions
+    .filter(x => isNotSharedDep(x[0])) //filter out shared deps
+    .map(x => [x[0], Object.keys(x[1].dependencies || {}).filter(isNotSharedDep)]) //filter out nested shared deps
+    .reduce((acc, [k, v]) => ({ [k]: v, ...acc }), {}); //convert key-value pairs into object
+
+  //TODO check how this works for multiple internal projects that reference each other
+  const internalTargets = {
+    [projectAssets.project.restore.projectName]: Object.keys(
+      projectAssets.project.frameworks['netstandard2.1'].dependencies
+    ).filter(isNotSharedDep),
+  };
+
+  const refs = createAllRefs(internalTargets, externalTargets);
+  const fileUrls = refs.map(f => `__bundleUrl__ + "${f}"`);
+
   return `module.exports = [
-    ${files.map(f => `__bundleUrl__ + "${f}"`).join(',')}
+    ${fileUrls.join(',')}
   ];`;
 };
