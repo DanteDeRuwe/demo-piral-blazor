@@ -20,12 +20,21 @@ const ReactTile: React.FC<any> = ({ name, url }) => (
   </div>
 );
 
+function showRefs(refs) {
+  let pre = document.createElement('pre');
+  pre.innerText = JSON.stringify(refs);
+  document.body.appendChild(pre);
+}
+
 export function setup(app: PiletApi) {
   //register react extensions like they would come from other pilets
   app.registerExtension('logo-blazor', logoBlazor);
 
-  //define the blazor refs
-  app.defineBlazorReferences(require('./refs.codegen'));
+  // define the blazor refs
+  const refs = require('./refs.codegen');
+  showRefs(refs); //TODO remove this again
+
+  app.defineBlazorReferences(refs);
 
   //register the Blazor extensions
   app.registerExtension('rng-blazor', app.fromBlazor('counter-blazor'));
