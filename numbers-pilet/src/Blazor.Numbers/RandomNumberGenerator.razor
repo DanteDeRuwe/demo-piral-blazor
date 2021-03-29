@@ -1,17 +1,32 @@
 ﻿@attribute [ExposePilet("rng-blazor")]
+@using Bogus
 
 <h3>Random Number Generator</h3>
-<p>The random number is: <strong>@number</strong></p>
+<p>Random number: <strong>@number</strong></p>
+<p>Random IPv4 address: <strong>@ipv4</strong></p>
+<p>Random IPv6 address: <strong>@ipv6</strong></p>
+<p>Random bitcoin address: <strong>@btc</strong></p>
 
-<button @onclick="Generate">Generate</button>
+<button @onclick="Generate">Randomize</button>
 
 @code {
-    static Random r = new Random();
-    int number = r.Next(1000);
+    int number;
+    string ipv4, ipv6, btc;
+    
+    static Randomizer  r = new Bogus.Randomizer();
+    static Bogus.DataSets.Internet internet = new Bogus.DataSets.Internet();
+    static Bogus.DataSets.Finance finance = new Bogus.DataSets.Finance();
 
     void Generate()
     {
-        number = r.Next(1000);
+        number = r.Number(1000);
+        ipv4 = internet.Ip();
+        ipv6 = internet.Ipv6();
+        btc = finance.BitcoinAddress();
     }
 
+    protected override void OnInitialized()
+    {
+        Generate();
+    }
 }
