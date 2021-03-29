@@ -1,5 +1,8 @@
 # Piral Blazor Demo Pilet
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/e494d1f3-f37b-437f-a8e5-f6208e1121d4/deploy-status)](https://app.netlify.com/sites/demo-piral-blazor/deploys)
+[![](https://img.shields.io/website?color=2b7489&style=flat-square&up_message=piralblazor.deruwe.me&url=https%3A%2F%2Fpiralblazor.deruwe.me)](https://piralblazor.deruwe.me)
+
 A microfrontend for piral (aka _a pilet_) as a demo for using
 <a href="https://piral.io" rel="nofollow">
 <img src="https://piral.io/logo-simple.f8667084.png" height="10">
