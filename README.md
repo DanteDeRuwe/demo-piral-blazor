@@ -7,6 +7,10 @@ A microfrontend for piral (aka _a pilet_) as a demo for using
 src="https://devblogs.microsoft.com/aspnet/wp-content/uploads/sites/16/2019/04/BrandBlazor_nohalo_1000x.png"
 height="10">&nbsp;Blazor</a>.
 
+## Overview
+
+![](https://media.giphy.com/media/SFjcfmR9rJFTvJvVHq/giphy.gif)
+
 ## Getting started
 
 ### Prerequisites
@@ -27,3 +31,7 @@ You'll need npm and .NET installed on your system.
    ```
    npx pilet debug
    ```
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
