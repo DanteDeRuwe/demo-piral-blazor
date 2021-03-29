@@ -20,11 +20,17 @@ const ReactTile: React.FC<any> = ({ name, url }) => (
   </div>
 );
 
-function showRefs(refs) {
-  let pre = document.createElement('pre');
-  pre.innerText = JSON.stringify(refs);
-  document.body.appendChild(pre);
-}
+const JsonDisplay: React.FC<any> = ({ object }) => (
+  <pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(object, null, 2)}</pre>
+);
+
+const BlazorRefs: React.FC<any> = ({ refs }) => (
+  <div>
+    <h3>Blazor References</h3>
+    <JsonDisplay object={refs} />
+    <small>The order of the references is calculated using a dependency tree.</small>
+  </div>
+);
 
 export function setup(app: PiletApi) {
   //register react extensions like they would come from other pilets
@@ -32,8 +38,6 @@ export function setup(app: PiletApi) {
 
   // define the blazor refs
   const refs = require('./refs.codegen');
-  showRefs(refs); //TODO remove this again
-
   app.defineBlazorReferences(refs);
 
   //register the Blazor extensions
@@ -46,6 +50,7 @@ export function setup(app: PiletApi) {
   app.registerTile(() => <ReactTile name="Profile" url="profile" />); //from react
   app.registerTile(() => <ReactTile name="Meaning of Life" url="meaning-of-life" />); //from react
   app.registerTile(() => <ReactTile name="Greeter" url="greeter" />); //from react
+  app.registerTile(() => <ReactTile name="Blazor references" url="blazor-references" />); //from react
   app.registerTile(app.fromBlazor('numbers-tile')); //from blazor
 
   //register pages
@@ -56,4 +61,5 @@ export function setup(app: PiletApi) {
   app.registerPage('/profile', app.fromBlazor('profile'));
   app.registerPage('/meaning-of-life', app.fromBlazor('meaning-of-life'));
   app.registerPage('/greeter', app.fromBlazor('greeter'));
+  app.registerPage('/blazor-references', () => <BlazorRefs refs={refs} />);
 }
