@@ -13,7 +13,7 @@ const targetFrameworkAlt = '.NETStandard,Version=v2.1';
 /** Finds an obj/../blazor folder to detect the blazor project */
 function findBlazorFolder(sourcefolder) {
   return new Promise((resolve, reject) => {
-    glob(`${sourcefolder}/**/obj/**/blazor/`, (err, matches) => {
+    glob(`${sourcefolder}/**/obj/${configuration}/**/blazor/`, (err, matches) => {
       if (!!err || !matches || matches.length == 0)
         return reject(new Error(`Blazor project not found. Details: ${err}`));
       if (matches.length > 1)
