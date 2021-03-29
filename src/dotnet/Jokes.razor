@@ -5,12 +5,9 @@
 <h3>Jokes</h3>
 
 <p>This component demonstrates fetching data from an API.</p>
+<button @onclick="Fetch">FETCH</button>
 
-@if (joke == null)
-{
-    <button @onclick="Fetch">FETCH</button>
-    return;
-}
+@if (joke == null){return;}
 
 <blockquote>@joke</blockquote>
 
@@ -22,7 +19,5 @@
     {
         var response = await client.GetAsync("/joke/Any?format=txt&type=single");
         if (response.IsSuccessStatusCode) joke = await response.Content.ReadAsStringAsync();
-
-        // joke = await client.GetStringAsync("/joke/Any?format=txt&type=single");
     }
 }
