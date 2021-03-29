@@ -2,14 +2,31 @@ const { resolve } = require('path');
 const { copyFileSync, existsSync, mkdirSync } = require('fs');
 const { execSync } = require('child_process');
 
-const bbjson = 'blazor.boot.json';
-const root = resolve(__dirname, '..');
-const output = resolve(__dirname, 'dotnet', 'bin', 'Release', 'netstandard2.1');
-const source = resolve(output, 'wwwroot', '_framework', '_bin');
+//TODO less hardcoded values and folder structure
 
-const objects = resolve(__dirname, 'dotnet', 'obj'); //TODO get this from msbuild GenerateRestoreGraphFile?
-const projectAssets = require(resolve(objects, 'project.assets.json'));
-const targets = projectAssets.targets['.NETStandard,Version=v2.1'];
+const bbjson = 'blazor.boot.json';
+const pajson = 'project.assets.json';
+const pjson = 'package.json';
+const configuration = 'Release';
+const targetFramework = 'netstandard2.1';
+const targetFrameworkAlt = '.NETStandard,Version=v2.1';
+
+const root = resolve(__dirname, '..');
+
+const blazorfolder = resolve(__dirname, 'dotnet');
+const output = resolve(blazorfolder, 'bin', configuration, targetFramework);
+const objects = resolve(blazorfolder, 'obj');
+const source = resolve(output, 'wwwroot', '_framework', '_bin');
+const projectAssets = require(resolve(objects, pajson));
+
+const targets = getNestedObject(projectAssets, ['targets', targetFrameworkAlt]);
+const projectName = getNestedObject(projectAssets, ['project', 'restore', 'projectName']);
+const projectDependencies = Object.keys(
+  getNestedObject(projectAssets, ['project', 'frameworks', targetFramework, 'dependencies'])
+);
+const projectReferences = Object.keys(
+  getNestedObject(projectAssets, ['project', 'restore', 'frameworks', targetFramework, 'projectReferences'])
+);
 
 function getAssemblyNames(manifest) {
   return Object.keys(manifest.resources.assembly);
@@ -24,15 +41,15 @@ function getUniqueAssemblies(originalManifest, piletManifest) {
 function buildBlazor() {
   console.log(`No Blazor output found. Building Blazor binary ...`);
 
-  execSync('dotnet build --configuration Release', {
+  execSync(`dotnet build --configuration ${configuration}`, {
     cwd: __dirname,
     stdio: 'inherit',
   });
 }
 
 function diffBlazorBootFiles() {
-  const project = require(resolve(root, 'package.json'));
-  const appdir = resolve(__dirname, '..', 'node_modules', project.piral.name);
+  const project = require(resolve(root, pjson));
+  const appdir = resolve(root, 'node_modules', project.piral.name);
 
   if (!existsSync(appdir)) {
     throw new Error(`Cannot find the directory of "${project.piral.name}". Please re-install the dependencies.`);
@@ -44,23 +61,47 @@ function diffBlazorBootFiles() {
 }
 
 function createAllRefs(internaltargets, externalTargets) {
-  const refs = new Set(); //luckily in js, Sets de-duplicate AND keep their insertion order
+  const refs = new Set(); //Sets de-duplicate AND keep their insertion order
 
-  const createRefs = fileName => {
+  const createExternalRefs = fileName => {
     //depth-first post-order traversal of the dependencies
     if (!fileName) return;
-    const deps = externalTargets[fileName]; //lookup
-    if (!deps || deps.length === 0) return refs.add(fileName); //leaf
-    deps.forEach(createRefs); // children
+    const deps = externalTargets[fileName];
+    if (!deps || deps.length === 0) return refs.add(fileName);
+    deps.forEach(createExternalRefs);
     refs.add(fileName);
   };
 
   for ([fileName, deps] of Object.entries(internaltargets)) {
-    deps.forEach(createRefs);
+    deps.forEach(createExternalRefs);
     refs.add(fileName);
   }
 
-  return [...refs].map(r => `${r}.dll`);
+  return [...refs];
+}
+
+function getNestedObject(nestedObj, pathArr) {
+  return pathArr.reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), nestedObj);
+}
+
+function defineTargets(uniqueDependencies) {
+  const isNotSharedDep = x => uniqueDependencies.includes(x);
+  const stripVersion = x => x.replace(/\/(\d+\.?)+/, ''); // Lib/1.2.3 --> Lib
+  const getcsprojname = x => `${/.*\\+(.*)\.csproj/.exec(x)[1]}`; // C:\\path\\to\\proj\\proj.csproj --> proj
+
+  // Get all external dependencies
+  const externalTargets = Object.entries(targets) // object to key-value
+    .map(x => [stripVersion(x[0]), x[1]]) ///strip versions
+    .filter(x => isNotSharedDep(x[0])) //filter out targets that are shared deps
+    .map(x => [x[0], Object.keys(x[1].dependencies || {}).filter(isNotSharedDep)]) //filter out dependencies that are shared deps
+    .reduce((acc, [k, v]) => ({ [k]: v, ...acc }), {}); // key-value to object
+
+  // Get internal project. Its depencencies = deps + references
+  const internalTargets = {
+    [projectName]: [...projectDependencies, ...projectReferences.map(getcsprojname)].filter(isNotSharedDep),
+  };
+
+  return [internalTargets, externalTargets];
 }
 
 module.exports = async function () {
@@ -78,35 +119,15 @@ module.exports = async function () {
     copyFileSync(from, to);
   });
 
-  const fileNames = files.map(f => f.replace('.dll', ''));
-
-  const isNotSharedDep = x => fileNames.includes(x);
-  const stripVersion = x => x.replace(/\/(\d+\.?)+/, '');
-  const getcsprojname = x => {
-    let regex = /.*\\+(.*)\.csproj/;
-    return `${regex.exec(x)[1]}`;
-  };
-
-  const externalTargets = Object.entries(targets)
-    .map(x => [stripVersion(x[0]), x[1]]) ///strip versions
-    .filter(x => isNotSharedDep(x[0])) //filter out shared deps
-    .map(x => [x[0], Object.keys(x[1].dependencies || {}).filter(isNotSharedDep)]) //filter out nested shared deps
-    .reduce((acc, [k, v]) => ({ [k]: v, ...acc }), {}); //convert key-value pairs into object
-
-  const deps = Object.keys(projectAssets.project.frameworks['netstandard2.1'].dependencies ?? {});
-  const projreferences = Object.keys(
-    projectAssets.project.restore.frameworks['netstandard2.1'].projectReferences ?? {}
-  ).map(getcsprojname);
-
-  const internalTargets = {
-    [projectAssets.project.restore.projectName]: [...deps, ...projreferences].filter(isNotSharedDep),
-  };
+  const uniqueDependencies = files.map(f => f.replace('.dll', ''));
+  const [internalTargets, externalTargets] = defineTargets(uniqueDependencies);
 
   const refs = createAllRefs(internalTargets, externalTargets);
-
-  const fileUrls = refs.map(f => `__bundleUrl__ + "${f}"`);
+  const fileUrls = refs.map(f => `__bundleUrl__ + "${f}.dll"`);
 
   return `module.exports = [
     ${fileUrls.join(',')}
   ];`;
 };
+" " 
+" " 
