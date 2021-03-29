@@ -13,7 +13,7 @@ const targetFrameworkAlt = '.NETStandard,Version=v2.1';
 
 const root = resolve(__dirname, '..');
 
-const blazorfolder = resolve(__dirname, 'dotnet');
+const blazorfolder = resolve(__dirname, 'Blazor.LibA'); //TODO
 const output = resolve(blazorfolder, 'bin', configuration, targetFramework);
 const objects = resolve(blazorfolder, 'obj');
 const source = resolve(output, 'wwwroot', '_framework', '_bin');
@@ -129,5 +129,3 @@ module.exports = async function () {
     ${fileUrls.join(',')}
   ];`;
 };
-" " 
-" " 
