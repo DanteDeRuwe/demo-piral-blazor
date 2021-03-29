@@ -600,4 +600,4 @@ fabric.properties
 .idea
 
 # publish script
-src/publish.sh
+publish.sh
