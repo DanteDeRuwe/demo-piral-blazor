@@ -23,18 +23,15 @@ function findBlazorFolder(sourcefolder) {
   });
 }
 
-function getAssemblyNames(manifest) {
-  return Object.keys(manifest.resources.assembly);
-}
-
 function getUniqueAssemblies(originalManifest, piletManifest) {
+  const getAssemblyNames = manifest => Object.keys(manifest.resources.assembly);
   const original = getAssemblyNames(originalManifest);
   const dedicated = getAssemblyNames(piletManifest);
   return dedicated.filter(m => !original.includes(m));
 }
 
-function buildBlazor() {
-  console.log(`No Blazor output found. Building Blazor binary ...`);
+function buildSolution() {
+  console.log(`No Blazor output found. Building solution ...`);
 
   execSync(`dotnet build --configuration ${configuration}`, {
     cwd: __dirname,
@@ -81,13 +78,12 @@ function getNestedObject(nestedObj, pathArr) {
 }
 
 function defineTargets(uniqueDependencies, projectAssets) {
-  const targets = getNestedObject(projectAssets, ['targets', targetFrameworkAlt]);
-
   const isNotSharedDep = x => uniqueDependencies.includes(x);
   const stripVersion = x => x.replace(/\/(\d+\.?)+/, ''); // Lib/1.2.3 --> Lib
   const getcsprojname = x => `${/.*\\+(.*)\.csproj/.exec(x)[1]}`; // C:\\path\\to\\proj\\proj.csproj --> proj
 
   // Get all external dependencies
+  const targets = getNestedObject(projectAssets, ['targets', targetFrameworkAlt]);
   const externalTargets = Object.entries(targets) // object to key-value
     .map(x => [stripVersion(x[0]), x[1]]) ///strip versions
     .filter(x => isNotSharedDep(x[0])) //filter out targets that are shared deps
@@ -111,35 +107,34 @@ function defineTargets(uniqueDependencies, projectAssets) {
 }
 
 module.exports = async function () {
-  const target = this.options.outDir;
-
   const blazorfolder = await findBlazorFolder(__dirname);
   const blazorprojectfolder = resolve(blazorfolder, '..', '..', '..', '..');
 
-  const output = resolve(blazorprojectfolder, 'bin', configuration, targetFramework);
-  const objects = resolve(blazorprojectfolder, 'obj');
-  const source = resolve(output, 'wwwroot', '_framework', '_bin');
-  const projectAssets = require(resolve(objects, pajson));
+  const binariesdir = resolve(blazorprojectfolder, 'bin', configuration, targetFramework);
+  const objectsDir = resolve(blazorprojectfolder, 'obj');
 
-  if (!existsSync(source)) buildBlazor();
+  const sourceDir = resolve(binariesdir, 'wwwroot', '_framework', '_bin');
+  const targetDir = this.options.outDir;
 
-  const files = diffBlazorBootFiles(output);
+  if (!existsSync(sourceDir)) buildSolution();
 
-  mkdirSync(target, { recursive: true });
+  const files = diffBlazorBootFiles(binariesdir);
+
+  mkdirSync(targetDir, { recursive: true });
 
   files.forEach(file => {
-    const from = resolve(source, file);
-    const to = resolve(target, file);
+    const from = resolve(sourceDir, file);
+    const to = resolve(targetDir, file);
     copyFileSync(from, to);
   });
 
   const uniqueDependencies = files.map(f => f.replace('.dll', ''));
-  const [internalTargets, externalTargets] = defineTargets(uniqueDependencies, projectAssets);
+  const projectAssets = require(resolve(objectsDir, pajson));
+  const targets = defineTargets(uniqueDependencies, projectAssets);
 
-  const refs = createAllRefs(internalTargets, externalTargets);
-  const fileUrls = refs.map(f => `__bundleUrl__ + "${f}.dll"`);
+  const refs = createAllRefs(...targets);
 
   return `module.exports = [
-    ${fileUrls.join(',')}
+    ${refs.map(f => `__bundleUrl__ + "${f}.dll"`).join(',')}
   ];`;
 };
