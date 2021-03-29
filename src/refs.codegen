@@ -107,7 +107,14 @@ function defineTargets(uniqueDependencies, projectAssets) {
 }
 
 module.exports = async function () {
-  const blazorfolder = await findBlazorFolder(__dirname);
+  let blazorfolder;
+  try {
+    blazorfolder = await findBlazorFolder(__dirname);
+  } catch {
+    buildSolution();
+    blazorfolder = await findBlazorFolder(__dirname);
+  }
+
   const blazorprojectfolder = resolve(blazorfolder, '..', '..', '..', '..');
 
   const binariesdir = resolve(blazorprojectfolder, 'bin', configuration, targetFramework);
@@ -116,7 +123,11 @@ module.exports = async function () {
   const sourceDir = resolve(binariesdir, 'wwwroot', '_framework', '_bin');
   const targetDir = this.options.outDir;
 
-  if (!existsSync(sourceDir)) buildSolution();
+  if (!existsSync(sourceDir))
+    throw new Error(
+      `Something went wrong with the Blazor build. 
+      Make sure there is at least one Blazor project in your solution.`
+    );
 
   const files = diffBlazorBootFiles(binariesdir);
 
