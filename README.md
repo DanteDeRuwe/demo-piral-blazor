@@ -9,7 +9,10 @@ height="10">&nbsp;Blazor</a>.
 
 ## Overview
 
-![](https://media.giphy.com/media/SFjcfmR9rJFTvJvVHq/giphy.gif)
+
+<p align="center">
+<img  src="https://i.imgur.com/G3k7LL7.gif" width="75%"/>
+</p>
 
 ## Getting started
 
