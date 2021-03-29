@@ -45,6 +45,7 @@ export function setup(app: PiletApi) {
   app.registerTile(() => <ReactTile name="Jokes" url="jokes" />); //from react
   app.registerTile(() => <ReactTile name="Profile" url="profile" />); //from react
   app.registerTile(() => <ReactTile name="Meaning of Life" url="meaning-of-life" />); //from react
+  app.registerTile(() => <ReactTile name="Greeter" url="greeter" />); //from react
   app.registerTile(app.fromBlazor('numbers-tile')); //from blazor
 
   //register pages
@@ -54,4 +55,5 @@ export function setup(app: PiletApi) {
   app.registerPage('/jokes', app.fromBlazor('jokes'));
   app.registerPage('/profile', app.fromBlazor('profile'));
   app.registerPage('/meaning-of-life', app.fromBlazor('meaning-of-life'));
+  app.registerPage('/greeter', app.fromBlazor('greeter'));
 }

@@ -82,6 +82,10 @@ module.exports = async function () {
 
   const isNotSharedDep = x => fileNames.includes(x);
   const stripVersion = x => x.replace(/\/(\d+\.?)+/, '');
+  const getcsprojname = x => {
+    let regex = /.*\\+(.*)\.csproj/;
+    return `${regex.exec(x)[1]}`;
+  };
 
   const externalTargets = Object.entries(targets)
     .map(x => [stripVersion(x[0]), x[1]]) ///strip versions
@@ -89,14 +93,17 @@ module.exports = async function () {
     .map(x => [x[0], Object.keys(x[1].dependencies || {}).filter(isNotSharedDep)]) //filter out nested shared deps
     .reduce((acc, [k, v]) => ({ [k]: v, ...acc }), {}); //convert key-value pairs into object
 
-  //TODO check how this works for multiple internal projects that reference each other
+  const deps = Object.keys(projectAssets.project.frameworks['netstandard2.1'].dependencies ?? {});
+  const projreferences = Object.keys(
+    projectAssets.project.restore.frameworks['netstandard2.1'].projectReferences ?? {}
+  ).map(getcsprojname);
+
   const internalTargets = {
-    [projectAssets.project.restore.projectName]: Object.keys(
-      projectAssets.project.frameworks['netstandard2.1'].dependencies
-    ).filter(isNotSharedDep),
+    [projectAssets.project.restore.projectName]: [...deps, ...projreferences].filter(isNotSharedDep),
   };
 
   const refs = createAllRefs(internalTargets, externalTargets);
+
   const fileUrls = refs.map(f => `__bundleUrl__ + "${f}"`);
 
   return `module.exports = [

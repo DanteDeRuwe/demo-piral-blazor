@@ -17,6 +17,10 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Blazor.LibB\Blazor.LibB.csproj" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="echo &quot; &quot; &gt;&gt; ..\refs.codegen" />
   </Target>
