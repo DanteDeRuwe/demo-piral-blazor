@@ -41,7 +41,7 @@ export function setup(app: PiletApi) {
   app.defineBlazorReferences(refs);
 
   //register the Blazor extensions
-  app.registerExtension('rng-blazor', app.fromBlazor('counter-blazor'));
+  app.registerExtension('counter-blazor', app.fromBlazor('counter-blazor'));
   app.registerExtension('rng-blazor', app.fromBlazor('rng-blazor'));
 
   //register tiles
