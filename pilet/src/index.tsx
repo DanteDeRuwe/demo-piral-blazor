@@ -40,10 +40,6 @@ export function setup(app: PiletApi) {
   const refs = require('./refs.codegen');
   app.defineBlazorReferences(refs);
 
-  //register the Blazor extensions
-  app.registerExtension('counter-blazor', app.fromBlazor('counter-blazor'));
-  app.registerExtension('rng-blazor', app.fromBlazor('rng-blazor'));
-
   //register tiles
   app.registerTile(() => <ReactTile name="Colors" url="colors" />); //from react
   app.registerTile(() => <ReactTile name="Jokes" url="jokes" />); //from react
@@ -51,10 +47,8 @@ export function setup(app: PiletApi) {
   app.registerTile(() => <ReactTile name="Meaning of Life" url="meaning-of-life" />); //from react
   app.registerTile(() => <ReactTile name="Greeter" url="greeter" />); //from react
   app.registerTile(() => <ReactTile name="Blazor references" url="blazor-references" />); //from react
-  app.registerTile(app.fromBlazor('numbers-tile')); //from blazor
 
   //register pages
-  app.registerPage('/numbers', app.fromBlazor('numbers'));
   app.registerPage('/colors', app.fromBlazor('colors'));
   app.registerPage('/about', app.fromBlazor('about'));
   app.registerPage('/jokes', app.fromBlazor('jokes'));
