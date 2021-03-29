@@ -41,6 +41,7 @@
   },
   "scripts": {
     "start": "pilet debug",
+    "debug": "pilet debug --feed https://feed.piral.cloud/api/v1/pilet/250321-blazor-experiments --port 2222",
     "build": "pilet build",
     "upgrade": "pilet upgrade"
   },
