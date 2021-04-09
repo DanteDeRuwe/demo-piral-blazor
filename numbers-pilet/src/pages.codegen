@@ -1,0 +1,64 @@
+const { promisify } = require('util');
+const exec = promisify(require('child_process').exec);
+const glob = require('glob');
+
+const configuration = 'Release';
+
+/** Finds an obj/../RazorDeclaration folder  */
+function findRazorDeclarationDir(sourcefolder) {
+  return new Promise((resolve, reject) => {
+    glob(`${sourcefolder}/**/obj/${configuration}/**/RazorDeclaration/`, (err, matches) => {
+      if (!!err || !matches || matches.length == 0)
+        return reject(new Error(`Blazor project not found. Details: ${err}`));
+      if (matches.length > 1)
+        return reject(new Error(`Only one blazor project is allowed. You have: ${JSON.stringify(matches, null, 2)}`));
+      return resolve(matches[0]);
+    });
+  });
+}
+
+/**
+ * Sanitizing a Blazor route template. The leading slash is removed and everything that is not alphanumeric
+ * or a dash gets replaced with an underscore. This is linked to the
+ * implementation in Piral.Blazor!
+ */
+const sanitize = route => route.replace('/', '').replace(/[^\w\-]/g, '_');
+
+/** Generates the source code line to register a blazor page */
+const toPageRegistration = route => `app.registerPage("${route}", app.fromBlazor("${sanitize(route)}"));`;
+
+module.exports = async () => {
+  let razorDeclarationDir;
+  try {
+    razorDeclarationDir = await findRazorDeclarationDir(__dirname);
+  } catch (err) {
+    throw new Error(`The Blazor pages could not be detected. Try to rebuild the project. Details: ${err}`);
+  }
+
+  // Use recursive grep to look for all [RouteAttribute] values.
+  const options = {
+    dir: razorDeclarationDir,
+    pattern: `(?<=(\\[Microsoft\.AspNetCore\.Components\.RouteAttribute\\(\\"))(.*)(?=\\"\\)\\])`,
+    extensions: ['.razor.g.cs'],
+    args: ['--no-filename', '--only-matching', '--perl-regex', '--recursive'],
+  };
+
+  const grep = `grep "${options.pattern}" ${options.dir} ${options.args.join(' ')} --include=*{${options.extensions}}`;
+
+  try {
+    const { stdout } = await exec(grep);
+    const routes = stdout.split('\n').filter(x => x);
+
+    return `module.exports = {
+      registerBlazorPages: (app) => { ${routes.map(toPageRegistration).join('\n')} },
+      blazorRoutes: ${JSON.stringify(routes)}
+    }`;
+  } catch (err) {
+    return `module.exports = {
+      registerBlazorPages: (...args) => {
+          console.warn(${__filename}: '\`registerBlazorPages\` was called, but no Blazor routes were found.')
+      },
+      blazorRoutes: []
+    }`;
+  }
+};
