@@ -25,7 +25,11 @@ function findRazorDeclarationDir(sourcefolder) {
 const sanitize = route => route.replace('/', '').replace(/[^\w\-]/g, '_');
 
 /** Generates the source code line to register a blazor page */
-const toPageRegistration = route => `app.registerPage("${route}", app.fromBlazor("${sanitize(route)}"));`;
+const toPageRegistration = route => `app.registerPage("${toPath(route)}", app.fromBlazor("${sanitize(route)}"));`;
+
+/** Translate a Blazor route into path-to-regexp syntax */
+const toPath = route =>
+  route.replace(/\{([\w?]*)([:*])?([^\/\{\}]*)\}/g, (...groups) => (groups[2] != '*' ? `:${groups[1]}` : '*'));
 
 module.exports = async () => {
   let razorDeclarationDir;
@@ -47,18 +51,20 @@ module.exports = async () => {
 
   try {
     const { stdout } = await exec(grep);
-    const routes = stdout.split('\n').filter(x => x);
+    const blazorRoutes = stdout.split('\n').filter(x => x);
 
     return `module.exports = {
-      registerBlazorPages: (app) => { ${routes.map(toPageRegistration).join('\n')} },
-      blazorRoutes: ${JSON.stringify(routes)}
+      registerBlazorPages: (app) => { ${blazorRoutes.map(toPageRegistration).join('\n')} },
+      blazorRoutes: ${JSON.stringify(blazorRoutes)},
+      paths: ${JSON.stringify(blazorRoutes.map(toPath))}
     }`;
   } catch (err) {
     return `module.exports = {
       registerBlazorPages: (...args) => {
           console.warn(${__filename}: '\`registerBlazorPages\` was called, but no Blazor routes were found.')
       },
-      blazorRoutes: []
+      blazorRoutes: [],
+      paths: []
     }`;
   }
 };
