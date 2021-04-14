@@ -25,7 +25,7 @@ function findRazorDeclarationDir(sourcefolder) {
 const sanitize = route => route.replace('/', '').replace(/[^\w\-]/g, '_');
 
 /** Generates the source code line to register a blazor page */
-const toPageRegistration = route => `app.registerPage("${toPath(route)}", app.fromBlazor("${sanitize(route)}"));`;
+const toPageRegistration = route => `app.registerPage("${toPath(route)}", app.fromBlazor("page-${sanitize(route)}"));`;
 
 /** Translate a Blazor route into path-to-regexp syntax */
 const toPath = route =>

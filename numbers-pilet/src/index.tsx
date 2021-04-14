@@ -18,7 +18,7 @@ const Tile: React.FC<React.PropsWithChildren<any>> = ({ children }) => <div clas
 export function setup(app: PiletApi) {
   // define the blazor refs
   const refs = require('./refs.codegen');
-  app.defineBlazorReferences(refs, { includePages: true });
+  app.defineBlazorReferences(refs);
 
   // register the Blazor extensions
   app.registerExtension('counter-blazor', app.fromBlazor('counter-blazor'));
