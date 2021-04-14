@@ -2,8 +2,13 @@ import * as React from 'react';
 import { PiletApi } from 'demo-piral-blazor-appshell';
 import './style.scss';
 import { Link } from 'react-router-dom';
-import { registerDependencies } from './refs.codegen';
-import { registerBlazorPages, registerBlazorExtensions, blazorRoutes, paths } from './extensions.codegen';
+import {
+  registerDependencies,
+  registerBlazorPages,
+  registerBlazorExtensions,
+  blazorRoutes,
+  paths,
+} from './blazor.codegen';
 
 const zip: (args) => any[] = (...rows) => [...rows[0]].map((_, c) => rows.map(row => row[c]));
 
