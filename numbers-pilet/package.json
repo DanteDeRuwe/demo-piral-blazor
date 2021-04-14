@@ -7,24 +7,24 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@dbeining/react-atom": "4.1.7",
+    "@dbeining/react-atom": "4.1.14",
     "@libre/atom": "1.3.3",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@types/react-router": "latest",
     "@types/react-router-dom": "latest",
+    "demo-piral-blazor-appshell": "0.1.1",
     "history": "4.10.1",
     "path-to-regexp": "1.8.0",
     "piral-cli": "next",
     "piral-cli-parcel": "next",
-    "react": "16.13.1",
-    "react-dom": "16.13.1",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
-    "sample-cross-fx": "next",
     "sass": "^1.32.8",
-    "tslib": "1.13.0",
+    "tslib": "1.14.1",
     "typescript": "latest"
   },
   "peerDependencies": {
@@ -37,13 +37,14 @@
     "react-router-dom": "*",
     "tslib": "*",
     "path-to-regexp": "*",
-    "sample-cross-fx": "*"
+    "demo-piral-blazor-appshell": "*"
   },
   "scripts": {
     "start": "pilet debug",
     "debug": "pilet debug --feed https://feed.piral.cloud/api/v1/pilet/250321-blazor-experiments --port 2222",
     "build": "pilet build",
-    "upgrade": "pilet upgrade"
+    "upgrade": "pilet upgrade",
+    "upgrade-pilet": "pilet upgrade --force-overwrite yes"
   },
   "main": "dist/index.js",
   "files": [
@@ -51,6 +52,7 @@
   ],
   "piral": {
     "comment": "Keep this section to use the Piral CLI.",
-    "name": "sample-cross-fx"
-  }
+    "name": "demo-piral-blazor-appshell"
+  },
+  "peerModules": []
 }
