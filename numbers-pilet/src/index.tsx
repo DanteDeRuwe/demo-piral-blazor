@@ -2,12 +2,8 @@ import * as React from 'react';
 import { PiletApi } from 'demo-piral-blazor-appshell';
 import './style.scss';
 import { Link } from 'react-router-dom';
-
-interface BlazorPages {
-  registerBlazorPages: (app: PiletApi) => void;
-  blazorRoutes: string[];
-  paths: string[];
-}
+import { registerDependencies } from './refs.codegen';
+import { registerBlazorPages, blazorRoutes, paths } from './pages.codegen';
 
 const zip: (args) => any[] = (...rows) => [...rows[0]].map((_, c) => rows.map(row => row[c]));
 
@@ -16,20 +12,14 @@ const RouteList: React.FC<{ routes: string[], paths: string[] }> = ({ routes, pa
 const Tile: React.FC<React.PropsWithChildren<any>> = ({ children }) => <div className="tile">{children}</div>;
 
 export function setup(app: PiletApi) {
-  // define the blazor refs
-  const refs = require('./refs.codegen');
-  app.defineBlazorReferences(refs);
+  // FROM CODEGEN
+  registerDependencies(app);
+  registerBlazorPages(app);
 
-  // register the Blazor extensions
+  // register the Blazor extensions and tiles
   app.registerExtension('counter-blazor', app.fromBlazor('counter-blazor'));
   app.registerExtension('rng-blazor', app.fromBlazor('rng-blazor'));
-
-  // register tiles
-  app.registerTile(app.fromBlazor('numbers-tile')); //from blazor
-
-  // register Blazor pages
-  const { registerBlazorPages, blazorRoutes, paths }: BlazorPages = require('./pages.codegen');
-  registerBlazorPages(app);
+  app.registerTile(app.fromBlazor('numbers-tile'));
 
   // access to all defined blazor routes
   app.registerTile(() => (
@@ -40,6 +30,7 @@ export function setup(app: PiletApi) {
     </Tile>
   ));
 
+  // test for route parameters
   app.registerTile(() => (
     <Tile>
       <Link to={`/counter/${Math.floor(Math.random() * 500)}`}>Counter with random start</Link>
