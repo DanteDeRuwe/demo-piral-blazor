@@ -1,0 +1,70 @@
+const { promisify } = require('util');
+const exec = promisify(require('child_process').exec);
+const glob = require('glob');
+const { join, resolve } = require('path');
+
+/*
+ * TODO merge with refs.codegen into blazor.codegen
+ */
+
+const analyzerProj = join(__dirname, '..', 'PiletAnalyzer', 'PiletAnalyzer.csproj'); //TODO move this into tooling or so
+const dllName = 'Blazor.Numbers.dll'; //TODO get this via refs after merge with refs.codegen
+const configuration = 'Release';
+
+/** Finds an obj/../blazor folder to detect the blazor project */
+function findBlazorFolder(sourcefolder) {
+  return new Promise((resolve, reject) => {
+    glob(`${sourcefolder}/**/obj/${configuration}/**/blazor/`, (err, matches) => {
+      if (!!err || !matches || matches.length == 0)
+        return reject(new Error(`Blazor project not found. Details: ${err}`));
+      if (matches.length > 1)
+        return reject(new Error(`Only one blazor project is allowed. You have: ${JSON.stringify(matches, null, 2)}`));
+      return resolve(matches[0]);
+    });
+  });
+}
+
+/**
+ * Sanitizing a Blazor route template. The leading slash is removed and everything that is not alphanumeric
+ * or a dash gets replaced with an underscore. This is linked to the
+ * implementation in Piral.Blazor!
+ */
+const sanitize = route => route.replace('/', '').replace(/[^\w\-]+/g, '_');
+
+/** Generates the source code line to register a blazor page */
+const toPageRegistration = route => `app.registerPage("${toPath(route)}", app.fromBlazor("page-${sanitize(route)}"));`;
+
+/** Generates the source code line to register a blazor extension */
+const toExtensionRegistration = name => `app.registerExtension("${name}", app.fromBlazor("${name}"));`;
+
+/** Translate a Blazor route into path-to-regexp syntax */
+const toPath = route =>
+  route.replace(/\{([\w?]*)([:*])?([^\/\{\}]*)\}/g, (...groups) => (groups[2] != '*' ? `:${groups[1]}` : '*'));
+
+module.exports = async () => {
+  const blazorfolder = await findBlazorFolder(__dirname);
+  const blazorprojectfolder = resolve(blazorfolder, '..', '..', '..', '..');
+
+  // Use PiletAnalyzer to look for pages and extensions
+  const command = `dotnet run --project ${analyzerProj} ${blazorprojectfolder} ${dllName}`;
+
+  try {
+    const { stdout } = await exec(command);
+    const { pages, extensions } = JSON.parse(stdout.trim());
+
+    return `module.exports = {
+      registerBlazorPages: (app) => { ${pages.map(toPageRegistration).join('\n')} },
+      registerBlazorExtensions : (app) => { ${extensions.map(toExtensionRegistration).join('\n')} },
+      blazorRoutes: ${JSON.stringify(pages)},
+      paths: ${JSON.stringify(pages.map(toPath))}
+    }`;
+  } catch (err) {
+    return `module.exports = {
+      registerBlazorPages: (...args) => {
+          console.warn('${__filename}: \`registerBlazorPages\` was called, but no Blazor routes were found.')
+      },
+      blazorRoutes: [],
+      paths: []
+    }`;
+  }
+};

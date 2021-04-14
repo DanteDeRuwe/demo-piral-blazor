@@ -3,7 +3,7 @@ import { PiletApi } from 'demo-piral-blazor-appshell';
 import './style.scss';
 import { Link } from 'react-router-dom';
 import { registerDependencies } from './refs.codegen';
-import { registerBlazorPages, blazorRoutes, paths } from './pages.codegen';
+import { registerBlazorPages, registerBlazorExtensions, blazorRoutes, paths } from './extensions.codegen';
 
 const zip: (args) => any[] = (...rows) => [...rows[0]].map((_, c) => rows.map(row => row[c]));
 
@@ -17,8 +17,7 @@ export function setup(app: PiletApi) {
   registerBlazorPages(app);
 
   // register the Blazor extensions and tiles
-  app.registerExtension('counter-blazor', app.fromBlazor('counter-blazor'));
-  app.registerExtension('rng-blazor', app.fromBlazor('rng-blazor'));
+  registerBlazorExtensions(app);
   app.registerTile(app.fromBlazor('numbers-tile'));
 
   // access to all defined blazor routes
