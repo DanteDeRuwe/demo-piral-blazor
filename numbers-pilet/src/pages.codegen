@@ -22,7 +22,7 @@ function findRazorDeclarationDir(sourcefolder) {
  * or a dash gets replaced with an underscore. This is linked to the
  * implementation in Piral.Blazor!
  */
-const sanitize = route => route.replace('/', '').replace(/[^\w\-]/g, '_');
+const sanitize = route => route.replace('/', '').replace(/[^\w\-]+/g, '_');
 
 /** Generates the source code line to register a blazor page */
 const toPageRegistration = route => `app.registerPage("${toPath(route)}", app.fromBlazor("page-${sanitize(route)}"));`;
