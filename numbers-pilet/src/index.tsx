@@ -42,9 +42,7 @@ export function setup(app: PiletApi) {
 
   app.registerTile(() => (
     <Tile>
-      <Link to={`/bar/baz/${Math.floor(Math.random() * 500)}`}>bar baz</Link>
+      <Link to={`/counter/${Math.floor(Math.random() * 500)}`}>Counter with random start</Link>
     </Tile>
   ));
-  // app.registerPage('/bar/baz/:id?', p => <p>hallo {p.match.params.id}</p>);
-  app.registerPage('/bar/baz/:id?', app.fromBlazor('rng-blazor'));
 }
