@@ -12,7 +12,10 @@ const configuration = 'Release';
 const targetFramework = 'netstandard2.1';
 const targetFrameworkAlt = '.NETStandard,Version=v2.1';
 
-const analyzerProj = join(__dirname, '..', 'PiletAnalyzer', 'PiletAnalyzer.csproj'); //TODO move this into tooling or so
+//TODO
+const analyzerProj = resolve(
+  'C:\\Users\\dante\\git\\Piral.Blazor\\src\\Piral.Blazor.Analyzer\\Piral.Blazor.Analyzer.csproj'
+);
 
 /** Finds an obj/../blazor folder to detect the blazor project */
 function findBlazorFolder(sourcefolder) {
