@@ -19,10 +19,10 @@ const Tile: React.FC<React.PropsWithChildren<any>> = ({ children }) => <div clas
 export function setup(app: PiletApi) {
   // FROM CODEGEN
   registerDependencies(app);
+  registerBlazorExtensions(app);
   registerBlazorPages(app);
 
   // register the Blazor extensions and tiles
-  registerBlazorExtensions(app);
   app.registerTile(app.fromBlazor('numbers-tile'));
 
   // access to all defined blazor routes

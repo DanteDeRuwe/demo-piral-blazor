@@ -122,18 +122,15 @@ function defineTargets(uniqueDependencies, projectAssets) {
   return [internalTargets, externalTargets];
 }
 
-/**
- * Sanitizing a Blazor route template. The leading slash is removed and everything that is not alphanumeric
- * or a dash gets replaced with an underscore. This is linked to the
- * implementation in Piral.Blazor!
- */
-const sanitize = route => route.replace('/', '').replace(/[^\w\-]+/g, '_');
-
 /** Generates the source code line to register a blazor page */
-const toPageRegistration = route => `app.registerPage("${toPath(route)}", app.fromBlazor("page-${sanitize(route)}"));`;
+const toPageRegistration = route => `app.registerPage("${toPath(route)}", app.fromBlazor("page-${route}"));`;
 
 /** Generates the source code line to register a blazor extension */
-const toExtensionRegistration = name => `app.registerExtension("${name}", app.fromBlazor("${name}"));`;
+const toExtensionRegistration = entry => {
+  const fqn = entry[0];
+  const ids = entry[1];
+  return ids.map(id => `app.registerExtension("${id}", app.fromBlazor("extension-${fqn}"));`).join('\n'); //TODO change with new analyzer
+};
 
 /** Translate a Blazor route into path-to-regexp syntax */
 const toPath = route =>
@@ -200,22 +197,23 @@ module.exports = async function () {
 
   try {
     const { stdout } = await execAsync(command);
-    const { pages, extensions } = JSON.parse(stdout.trim());
+    const { routes, extensions } = JSON.parse(stdout.trim());
 
     return `module.exports = {
       registerDependencies: (app) => { 
         app.defineBlazorReferences([${refs.map(f => `__bundleUrl__ + "${f}.dll"`).join(',')}]);
       },
       registerBlazorPages: (app) => { 
-        ${pages.map(toPageRegistration).join('\n')} 
+        ${routes.map(toPageRegistration).join('\n')} 
       },
       registerBlazorExtensions : (app) => {
-        ${extensions.map(toExtensionRegistration).join('\n')} 
+        ${Object.entries(extensions).map(toExtensionRegistration).join('\n')} 
       },
-      blazorRoutes: ${JSON.stringify(pages)},
-      paths: ${JSON.stringify(pages.map(toPath))}
+      blazorRoutes: ${JSON.stringify(routes)},
+      paths: ${JSON.stringify(routes.map(toPath))}
     }`;
   } catch (err) {
+    console.error(err);
     return `module.exports = {
       registerDependencies: (app) => { 
         app.defineBlazorReferences([${refs.map(f => `__bundleUrl__ + "${f}.dll"`).join(',')}]);
