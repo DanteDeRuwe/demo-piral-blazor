@@ -40,8 +40,7 @@ namespace PiletAnalyzer
                 .ToReadOnly();
 
             var pages = attributeData.GetAttributeValues("RouteAttribute");
-            var extensions = attributeData.GetAttributeValues("ExposePiletAttribute");
-            Console.WriteLine(JsonSerializer.Serialize(new { pages, extensions }));
+            Console.WriteLine(JsonSerializer.Serialize(new { pages }));
         }
     }
 
