@@ -1,3 +1,4 @@
+@page "/counter/{Start?:int}"
 @attribute [ExposePilet("counter-blazor")]
 
 <h3>Counter</h3>
@@ -7,7 +8,15 @@
 
 
 @code {
-    int currentCount = 0;
+    [Parameter]
+    public int Start {get; set;}
+
+    int currentCount;
+
+    protected override void OnInitialized()
+    {
+        currentCount = Start;
+    }
 
     void IncrementCount()
     {

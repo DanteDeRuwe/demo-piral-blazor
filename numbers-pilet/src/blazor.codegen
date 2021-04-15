@@ -1,6 +1,8 @@
-const { resolve } = require('path');
+const { join, resolve, basename } = require('path');
+const { promisify } = require('util');
 const { copyFileSync, existsSync, mkdirSync } = require('fs');
-const { execSync } = require('child_process');
+const { execSync, exec } = require('child_process');
+const execAsync = promisify(exec);
 const glob = require('glob');
 
 const bbjson = 'blazor.boot.json';
@@ -9,6 +11,8 @@ const pjson = 'package.json';
 const configuration = 'Release';
 const targetFramework = 'netstandard2.1';
 const targetFrameworkAlt = '.NETStandard,Version=v2.1';
+
+const analyzerProj = join(__dirname, '..', 'PiletAnalyzer', 'PiletAnalyzer.csproj'); //TODO move this into tooling or so
 
 /** Finds an obj/../blazor folder to detect the blazor project */
 function findBlazorFolder(sourcefolder) {
@@ -19,6 +23,18 @@ function findBlazorFolder(sourcefolder) {
       if (matches.length > 1)
         return reject(new Error(`Only one blazor project is allowed. You have: ${JSON.stringify(matches, null, 2)}`));
       return resolve(matches[0]);
+    });
+  });
+}
+
+/** Extracts the project name from a blazor project folder */
+function getProjectName(projectFolder) {
+  return new Promise((resolve, reject) => {
+    glob(`${projectFolder}/*.csproj`, (err, matches) => {
+      if (!!err || !matches || matches.length == 0) return reject(new Error(`Project file not found. Details: ${err}`));
+      if (matches.length > 1)
+        return reject(new Error(`Only one project file is allowed. You have: ${JSON.stringify(matches, null, 2)}`));
+      return resolve(basename(matches[0]).replace('.csproj', ''));
     });
   });
 }
@@ -106,6 +122,29 @@ function defineTargets(uniqueDependencies, projectAssets) {
   return [internalTargets, externalTargets];
 }
 
+/**
+ * Sanitizing a Blazor route template. The leading slash is removed and everything that is not alphanumeric
+ * or a dash gets replaced with an underscore. This is linked to the
+ * implementation in Piral.Blazor!
+ */
+const sanitize = route => route.replace('/', '').replace(/[^\w\-]+/g, '_');
+
+/** Generates the source code line to register a blazor page */
+const toPageRegistration = route => `app.registerPage("${toPath(route)}", app.fromBlazor("page-${sanitize(route)}"));`;
+
+/** Generates the source code line to register a blazor extension */
+const toExtensionRegistration = name => `app.registerExtension("${name}", app.fromBlazor("${name}"));`;
+
+/** Translate a Blazor route into path-to-regexp syntax */
+const toPath = route =>
+  route.replace(/\{([\w?]*)([:*])?([^\/\{\}]*)\}/g, (...groups) => (groups[2] != '*' ? `:${groups[1]}` : '*'));
+
+/*
+ *
+ * ----------------------------------------------------------------------------------------------------------------------
+ *
+ */
+
 module.exports = async function () {
   let blazorfolder;
   try {
@@ -145,9 +184,50 @@ module.exports = async function () {
 
   const refs = createAllRefs(...targets);
 
-  return `module.exports = {
-    registerDependencies: (app) => {
-      app.defineBlazorReferences([${refs.map(f => `__bundleUrl__ + "${f}.dll"`).join(',')}]);
-    }
-  }`;
+  // ---
+
+  let projectName;
+  try {
+    projectName = await getProjectName(blazorprojectfolder);
+  } catch (err) {
+    console.error(err);
+  }
+
+  const dllName = `${projectName}.dll`;
+
+  // Use PiletAnalyzer to look for pages and extensions
+  const command = `dotnet run --project ${analyzerProj} ${blazorprojectfolder} ${dllName}`;
+
+  try {
+    const { stdout } = await execAsync(command);
+    const { pages, extensions } = JSON.parse(stdout.trim());
+
+    return `module.exports = {
+      registerDependencies: (app) => { 
+        app.defineBlazorReferences([${refs.map(f => `__bundleUrl__ + "${f}.dll"`).join(',')}]);
+      },
+      registerBlazorPages: (app) => { 
+        ${pages.map(toPageRegistration).join('\n')} 
+      },
+      registerBlazorExtensions : (app) => {
+        ${extensions.map(toExtensionRegistration).join('\n')} 
+      },
+      blazorRoutes: ${JSON.stringify(pages)},
+      paths: ${JSON.stringify(pages.map(toPath))}
+    }`;
+  } catch (err) {
+    return `module.exports = {
+      registerDependencies: (app) => { 
+        app.defineBlazorReferences([${refs.map(f => `__bundleUrl__ + "${f}.dll"`).join(',')}]);
+      },
+      registerBlazorPages: (...args) => {
+        console.warn('${__filename}: \`registerBlazorPages\` was called, but no Blazor routes were found.')
+      },
+      registerBlazorExtensions: (...args) => {
+        console.warn('${__filename}: \`registerBlazorExtensions\` was called, but no Blazor extensions were found.')
+      },
+      blazorRoutes: [],
+      paths: []
+    }`;
+  }
 };
